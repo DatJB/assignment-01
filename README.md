@@ -1,7 +1,4 @@
-
-> # Ứng dụng web chẩn đoán bệnh tiểu đường & dự đoán giá nhà đất sử dụng Machine Learning
-
----
+ # Ứng dụng web chẩn đoán bệnh tiểu đường & dự đoán giá nhà đất sử dụng Machine Learning
 
 ## Giới thiệu
 
