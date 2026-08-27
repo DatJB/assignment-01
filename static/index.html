@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ML Prediction Dashboard</title>
+  <meta name="description" content="Ứng dụng dự đoán bệnh tiểu đường và giá nhà sử dụng Machine Learning" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="/vis-network.min.js"></script>
+  <link rel="stylesheet" href="/vis-network.min.css" />
+</head>
+<body>
+  <!-- ── Animated Background ─────────────────────────────────────────── -->
+  <div class="bg-grid"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="logo-text">ML<span>Predict</span></span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" id="nav-diabetes" onclick="showPage('diabetes')">
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="nav-label">
+          <span class="nav-title">Chẩn đoán bệnh</span>
+          <span class="nav-sub">Tiểu đường · 4 models</span>
+        </div>
+      </button>
+
+      <button class="nav-item" id="nav-house" onclick="showPage('house')">
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="9 22 9 12 15 12 15 22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="nav-label">
+          <span class="nav-title">Giá nhà đất</span>
+          <span class="nav-sub">Gradient Boosting</span>
+        </div>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="status-indicator">
+        <span class="status-dot" id="server-dot"></span>
+        <span id="server-status">Đang kết nối...</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main Content ─────────────────────────────────────────────────── -->
+  <main class="main-content">
+
+    <!-- ── DIABETES PAGE ──────────────────────────────────────────────── -->
+    <div class="page active" id="page-diabetes">
+      <div class="page-header">
+        <div class="page-badge badge-red">Chẩn đoán</div>
+        <h1 class="page-title">Chẩn đoán Bệnh Tiểu Đường</h1>
+        <p class="page-desc">Nhập các chỉ số lâm sàng để dự đoán nguy cơ mắc bệnh tiểu đường bằng Machine Learning</p>
+      </div>
+
+
+      <!-- Patient Presets -->
+      <div class="patient-section">
+        <h2 class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+          Bệnh nhân mẫu
+        </h2>
+        <div class="patient-cards">
+          <button class="patient-card" id="patient-card-1" onclick="loadPatient(1)">
+            <div class="patient-avatar" style="background:linear-gradient(135deg,#4fff9a22,#4fff9a44);border-color:#4fff9a44;">
+              <span>👩</span>
+            </div>
+            <div class="patient-info">
+              <div class="patient-name">Nguyễn Thị An</div>
+              <div class="patient-meta">Nữ · 21 tuổi · BMI 28.1</div>
+              <div class="patient-risk risk-low">🟢 Nguy cơ thấp</div>
+            </div>
+            <div class="patient-stats">
+              <span>Glucose: 89</span>
+              <span>BP: 66</span>
+            </div>
+          </button>
+
+          <button class="patient-card" id="patient-card-2" onclick="loadPatient(2)">
+            <div class="patient-avatar" style="background:linear-gradient(135deg,#ffbe4f22,#ffbe4f44);border-color:#ffbe4f44;">
+              <span>🧑</span>
+            </div>
+            <div class="patient-info">
+              <div class="patient-name">Trần Văn Bình</div>
+              <div class="patient-meta">Nam · 45 tuổi · BMI 30.5</div>
+              <div class="patient-risk risk-medium">🟡 Nguy cơ trung bình</div>
+            </div>
+            <div class="patient-stats">
+              <span>Glucose: 130</span>
+              <span>BP: 78</span>
+            </div>
+          </button>
+
+          <button class="patient-card" id="patient-card-3" onclick="loadPatient(3)">
+            <div class="patient-avatar" style="background:linear-gradient(135deg,#ff4f7b22,#ff4f7b44);border-color:#ff4f7b44;">
+              <span>👩‍🦳</span>
+            </div>
+            <div class="patient-info">
+              <div class="patient-name">Lê Thị Cúc</div>
+              <div class="patient-meta">Nữ · 50 tuổi · BMI 36.6</div>
+              <div class="patient-risk risk-high">🔴 Nguy cơ cao</div>
+            </div>
+            <div class="patient-stats">
+              <span>Glucose: 183</span>
+              <span>BP: 64</span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Model Selector -->
+      <div class="model-selector-section">
+        <h2 class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 0 1 21 12a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2"/></svg>
+          Chọn Model
+        </h2>
+        <div class="model-cards" id="diabetes-model-cards">
+          <div class="model-card skeleton"></div>
+          <div class="model-card skeleton"></div>
+          <div class="model-card skeleton"></div>
+          <div class="model-card skeleton"></div>
+        </div>
+      </div>
+
+      <!-- Input Form -->
+      <div class="form-section">
+        <h2 class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Nhập Thông Số
+        </h2>
+        <div class="form-grid">
+          <!-- Row 1 -->
+          <div class="form-group">
+            <label for="d-pregnancies">
+              <span class="label-icon">🤰</span>
+              Số lần mang thai
+            </label>
+            <div class="input-wrapper">
+              <input type="number" id="d-pregnancies" min="0" max="20" step="1" value="1" placeholder="0 - 20" />
+              <span class="input-unit">lần</span>
+            </div>
+            <div class="input-hint">Số lần mang thai trong cuộc đời</div>
+          </div>
+
+          <div class="form-group">
+            <label for="d-glucose">
+              <span class="label-icon">🩸</span>
+              Glucose huyết tương
+            </label>
+            <div class="input-wrapper">
+              <input type="number" id="d-glucose" min="0" max="300" step="1" value="120" placeholder="0 - 300" />
+              <span class="input-unit">mg/dL</span>
+            </div>
+            <div class="input-hint">Nồng độ glucose trong 2 giờ (OGTT)</div>
+          </div>
+
+          <div class="form-group">
+            <label for="d-bloodpressure">
+              <span class="label-icon">💓</span>
+              Huyết áp tâm trương
+            </label>
+            <div class="input-wrapper">
+              <input type="number" id="d-bloodpressure" min="0" max="200" step="1" value="72" placeholder="0 - 200" />
+              <span class="input-unit">mmHg</span>
+            </div>
+            <div class="input-hint">Huyết áp tâm trương đo bằng mmHg</div>
+          </div>
+
+          <div class="form-group">
+            <label for="d-skinthickness">
+              <span class="label-icon">📏</span>
+              Độ dày nếp gấp da
+            </label>
+            <div class="input-wrapper">
+              <input type="number" id="d-skinthickness" min="0" max="100" step="1" value="23" placeholder="0 - 100" />
+              <span class="input-unit">mm</span>
+            </div>
+            <div class="input-hint">Độ dày nếp da cơ tam đầu (mm)</div>
+          </div>
+
+          <div class="form-group">
+            <label for="d-insulin">
+              <span class="label-icon">💉</span>
+              Insulin huyết thanh
+            </label>
+            <div class="input-wrapper">
+              <input type="number" id="d-insulin" min="0" max="900" step="1" value="79" placeholder="0 - 900" />
+              <span class="input-unit">mu U/ml</span>
+            </div>
+            <div class="input-hint">Insulin huyết thanh 2 giờ</div>
+          </div>
+
+          <div class="form-group">
+            <label for="d-bmi">
+              <span class="label-icon">⚖️</span>
+              Chỉ số BMI
+            </label>
+            <div class="input-wrapper">
+              <input type="number" id="d-bmi" min="0" max="70" step="0.1" value="32.0" placeholder="0 - 70" />
+              <span class="input-unit">kg/m²</span>
+            </div>
+            <div class="input-hint">Khối lượng cơ thể / chiều cao²</div>
+          </div>
+
+          <div class="form-group">
+            <label for="d-dpf">
+              <span class="label-icon">🧬</span>
+              Chỉ số di truyền
+            </label>
+            <div class="input-wrapper">
+              <input type="number" id="d-dpf" min="0" max="3" step="0.001" value="0.372" placeholder="0.0 - 3.0" />
+              <span class="input-unit">DPF</span>
+            </div>
+            <div class="input-hint">Diabetes Pedigree Function</div>
+          </div>
+
+          <div class="form-group">
+            <label for="d-age">
+              <span class="label-icon">🎂</span>
+              Tuổi
+            </label>
+            <div class="input-wrapper">
+              <input type="number" id="d-age" min="1" max="120" step="1" value="33" placeholder="1 - 120" />
+              <span class="input-unit">tuổi</span>
+            </div>
+            <div class="input-hint">Tuổi của bệnh nhân</div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-reset" onclick="resetDiabetesForm()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+            Đặt lại
+          </button>
+          <button class="btn-predict" id="btn-diabetes-predict" onclick="predictDiabetes()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Dự đoán
+          </button>
+        </div>
+      </div>
+
+      <!-- Result -->
+      <div class="result-section" id="diabetes-result" style="display:none">
+        <div class="result-card" id="diabetes-result-card">
+          <div class="result-icon" id="diabetes-result-icon"></div>
+          <div class="result-content">
+            <div class="result-label" id="diabetes-result-label"></div>
+            <div class="result-model" id="diabetes-result-model"></div>
+          </div>
+          <div class="result-proba" id="diabetes-result-proba"></div>
+        </div>
+      </div>
+
+      <!-- Knowledge Graph -->
+      <div class="kg-section" id="kg-section" style="display:none">
+        <div class="kg-header">
+          <div class="kg-title-block">
+            <div class="kg-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+              </svg>
+            </div>
+            <div>
+              <h2 class="kg-title">Knowledge Graph – Neo4j Style</h2>
+              <p class="kg-subtitle">Đồ thị tri thức mô tả mối quan hệ giữa bệnh nhân, chỉ số lâm sàng và kết quả chẩn đoán</p>
+            </div>
+          </div>
+          <div class="kg-legend">
+            <span class="kg-legend-item"><span class="kg-dot" style="background:#7c5cbf"></span>Patient</span>
+            <span class="kg-legend-item"><span class="kg-dot" style="background:#c0392b"></span>Diagnosis</span>
+            <span class="kg-legend-item"><span class="kg-dot" style="background:#2471a3"></span>ClinicalValue</span>
+            <span class="kg-legend-item"><span class="kg-dot" style="background:#148f77"></span>Recommendation</span>
+            <span class="kg-legend-item"><span class="kg-dot" style="background:#b7950b"></span>RiskFactor</span>
+            <span class="kg-legend-item"><span class="kg-dot" style="background:#1a3a5c"></span>MLModel</span>
+          </div>
+        </div>
+        <div id="kg-canvas"></div>
+      </div>
+    </div>
+
+    <!-- ── HOUSE PRICE PAGE ────────────────────────────────────────────── -->
+    <div class="page" id="page-house">
+      <div class="page-header">
+        <div class="page-badge badge-blue">Dự đoán</div>
+        <h1 class="page-title">Dự đoán Giá Nhà Đất</h1>
+        <p class="page-desc">Nhập thông tin bất động sản để ước tính giá trị thị trường bằng Gradient Boosting</p>
+      </div>
+
+      <div class="model-info-banner">
+        <div class="banner-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="banner-content">
+          <div class="banner-title">Gradient Boosting Regressor</div>
+          <div class="banner-desc">Mô hình được huấn luyện trên dữ liệu bất động sản Việt Nam</div>
+        </div>
+        <div class="banner-badge">Active</div>
+      </div>
+
+      <div class="form-section">
+        <h2 class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+          Thông Tin Bất Động Sản
+        </h2>
+
+        <div class="form-group-title">📍 Vị trí</div>
+        <div class="form-grid form-grid-1">
+          <div class="form-group form-group-full">
+            <label for="h-province">
+              <span class="label-icon">📍</span>
+              Tỉnh / Thành phố
+            </label>
+            <div class="select-wrapper">
+              <select id="h-province">
+                <optgroup label="── Thành phố trực thuộc TW ──">
+                  <option value="Hà Nội" selected>Hà Nội</option>
+                  <option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option>
+                  <option value="Đà Nẵng">Đà Nẵng</option>
+                  <option value="Hải Phòng">Hải Phòng</option>
+                  <option value="Cần Thơ">Cần Thơ</option>
+                </optgroup>
+                <optgroup label="── Miền Bắc ──">
+                  <option value="Bắc Ninh">Bắc Ninh</option>
+                  <option value="Bắc Giang">Bắc Giang</option>
+                  <option value="Hà Nam">Hà Nam</option>
+                  <option value="Hải Dương">Hải Dương</option>
+                  <option value="Hưng Yên">Hưng Yên</option>
+                  <option value="Nam Định">Nam Định</option>
+                  <option value="Ninh Bình">Ninh Bình</option>
+                  <option value="Thái Bình">Thái Bình</option>
+                  <option value="Vĩnh Phúc">Vĩnh Phúc</option>
+                  <option value="Quảng Ninh">Quảng Ninh</option>
+                  <option value="Thái Nguyên">Thái Nguyên</option>
+                  <option value="Phú Thọ">Phú Thọ</option>
+                  <option value="Lào Cai">Lào Cai</option>
+                  <option value="Hòa Bình">Hòa Bình</option>
+                </optgroup>
+                <optgroup label="── Miền Trung ──">
+                  <option value="Thừa Thiên Huế">Thừa Thiên Huế</option>
+                  <option value="Quảng Nam">Quảng Nam</option>
+                  <option value="Quảng Ngãi">Quảng Ngãi</option>
+                  <option value="Bình Định">Bình Định</option>
+                  <option value="Phú Yên">Phú Yên</option>
+                  <option value="Khánh Hòa">Khánh Hòa</option>
+                  <option value="Nghệ An">Nghệ An</option>
+                  <option value="Hà Tĩnh">Hà Tĩnh</option>
+                  <option value="Quảng Bình">Quảng Bình</option>
+                  <option value="Quảng Trị">Quảng Trị</option>
+                  <option value="Đắk Lắk">Đắk Lắk</option>
+                  <option value="Lâm Đồng">Lâm Đồng</option>
+                </optgroup>
+                <optgroup label="── Miền Nam ──">
+                  <option value="Bình Dương">Bình Dương</option>
+                  <option value="Đồng Nai">Đồng Nai</option>
+                  <option value="Bà Rịa - Vũng Tàu">Bà Rịa - Vũng Tàu</option>
+                  <option value="Bình Phước">Bình Phước</option>
+                  <option value="Tây Ninh">Tây Ninh</option>
+                  <option value="Long An">Long An</option>
+                  <option value="Tiền Giang">Tiền Giang</option>
+                  <option value="Bến Tre">Bến Tre</option>
+                  <option value="Vĩnh Long">Vĩnh Long</option>
+                  <option value="Đồng Tháp">Đồng Tháp</option>
+                  <option value="An Giang">An Giang</option>
+                  <option value="Kiên Giang">Kiên Giang</option>
+                </optgroup>
+              </select>
+              <svg class="select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="input-hint">Vị trí của bất động sản (dùng để hiển thị, không ảnh hưởng mô hình)</div>
+          </div>
+
+        </div>
+
+        <div class="form-group-title">📐 Thông số kỹ thuật</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="h-area">
+              <span class="label-icon">📐</span>
+              Diện tích
+            </label>
+            <div class="input-wrapper">
+              <input type="number" id="h-area" min="10" max="1000" step="0.1" value="50" placeholder="10 - 1000" />
+              <span class="input-unit">m²</span>
+            </div>
+            <div class="input-hint">Tổng diện tích sàn</div>
+          </div>
+
+          <div class="form-group">
+            <label for="h-frontage">
+              <span class="label-icon">↔️</span>
+              Mặt tiền
+            </label>
+            <div class="input-wrapper">
+              <input type="number" id="h-frontage" min="1" max="50" step="0.1" value="4" placeholder="1 - 50" />
+              <span class="input-unit">m</span>
+            </div>
+            <div class="input-hint">Chiều rộng mặt tiền</div>
+          </div>
+
+          <div class="form-group">
+            <label for="h-access">
+              <span class="label-icon">🛣️</span>
+              Đường vào
+            </label>
+            <div class="input-wrapper">
+              <input type="number" id="h-access" min="1" max="50" step="0.1" value="4" placeholder="1 - 50" />
+              <span class="input-unit">m</span>
+            </div>
+            <div class="input-hint">Chiều rộng đường trước nhà</div>
+          </div>
+
+          <div class="form-group">
+            <label for="h-floors">
+              <span class="label-icon">🏢</span>
+              Số tầng
+            </label>
+            <div class="input-wrapper">
+              <input type="number" id="h-floors" min="1" max="30" step="1" value="3" placeholder="1 - 30" />
+              <span class="input-unit">tầng</span>
+            </div>
+            <div class="input-hint">Tổng số tầng nhà</div>
+          </div>
+
+          <div class="form-group">
+            <label for="h-bedrooms">
+              <span class="label-icon">🛏️</span>
+              Phòng ngủ
+            </label>
+            <div class="input-wrapper">
+              <input type="number" id="h-bedrooms" min="1" max="20" step="1" value="3" placeholder="1 - 20" />
+              <span class="input-unit">phòng</span>
+            </div>
+            <div class="input-hint">Số phòng ngủ</div>
+          </div>
+
+          <div class="form-group">
+            <label for="h-bathrooms">
+              <span class="label-icon">🚿</span>
+              Phòng tắm
+            </label>
+            <div class="input-wrapper">
+              <input type="number" id="h-bathrooms" min="1" max="20" step="1" value="2" placeholder="1 - 20" />
+              <span class="input-unit">phòng</span>
+            </div>
+            <div class="input-hint">Số phòng tắm / WC</div>
+          </div>
+        </div>
+
+        <div class="form-group-title">🧭 Hướng & Pháp lý</div>
+        <div class="form-grid form-grid-2">
+          <div class="form-group">
+            <label for="h-house-dir">
+              <span class="label-icon">🧭</span>
+              Hướng nhà
+            </label>
+            <div class="select-wrapper">
+              <select id="h-house-dir">
+                <option value="Đông">Đông</option>
+                <option value="Đông - Nam">Đông - Nam</option>
+                <option value="Nam" selected>Nam</option>
+                <option value="Tây - Nam">Tây - Nam</option>
+                <option value="Tây">Tây</option>
+                <option value="Tây - Bắc">Tây - Bắc</option>
+                <option value="Bắc">Bắc</option>
+                <option value="Đông - Bắc">Đông - Bắc</option>
+              </select>
+              <svg class="select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="h-balcony-dir">
+              <span class="label-icon">🏠</span>
+              Hướng ban công
+            </label>
+            <div class="select-wrapper">
+              <select id="h-balcony-dir">
+                <option value="Đông">Đông</option>
+                <option value="Đông - Nam" selected>Đông - Nam</option>
+                <option value="Nam">Nam</option>
+                <option value="Tây - Nam">Tây - Nam</option>
+                <option value="Tây">Tây</option>
+                <option value="Tây - Bắc">Tây - Bắc</option>
+                <option value="Bắc">Bắc</option>
+                <option value="Đông - Bắc">Đông - Bắc</option>
+              </select>
+              <svg class="select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="h-legal">
+              <span class="label-icon">📜</span>
+              Tình trạng pháp lý
+            </label>
+            <div class="select-wrapper">
+              <select id="h-legal">
+                <option value="Have certificate" selected>Có sổ đỏ / sổ hồng</option>
+                <option value="Sale contract">Hợp đồng mua bán</option>
+              </select>
+              <svg class="select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="h-furniture">
+              <span class="label-icon">🛋️</span>
+              Tình trạng nội thất
+            </label>
+            <div class="select-wrapper">
+              <select id="h-furniture">
+                <option value="Basic">Cơ bản</option>
+                <option value="Full" selected>Đầy đủ</option>
+              </select>
+              <svg class="select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-reset" onclick="resetHouseForm()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+            Đặt lại
+          </button>
+          <button class="btn-predict btn-blue" id="btn-house-predict" onclick="predictHouse()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Dự đoán giá
+          </button>
+        </div>
+      </div>
+
+      <!-- House Result -->
+      <div class="result-section" id="house-result" style="display:none">
+        <div class="house-result-card">
+          <div class="house-result-label">Giá ước tính</div>
+          <div class="house-result-price" id="house-result-price"></div>
+          <div class="house-result-unit">Tỷ đồng</div>
+          <div class="house-result-note">* Đây là giá ước tính, có thể dao động tùy vị trí thực tế</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
